@@ -491,7 +491,7 @@ const PatientDashboard: React.FC = () => {
 
         {/* Progress Tab */}
         {activeTab === 'progress' && (
-          <ProgressVisualization data={progressData} />
+
         )}
 
         {/* Diet Plan Tab */}
