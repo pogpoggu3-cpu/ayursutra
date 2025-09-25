@@ -16,6 +16,7 @@ import {
   Edit,
   Clock
 } from 'lucide-react';
+import PatientProgressModal from '../../components/Doctor/PatientProgressModal';
 
 // --- Type Definitions for Structured Data ---
 type Therapy = {
@@ -59,6 +60,10 @@ const initialAnalyses: (AnalysisResult & { analyzedAt: string; accuracy: number 
 const DoctorDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('prescriptions');
 
+  // --- Patient Progress Modal State ---
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+
   // --- State for AI Prescription Analysis ---
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -82,6 +87,53 @@ const DoctorDashboard: React.FC = () => {
     { id: 4, name: 'Vikram Singh', condition: 'Insomnia', nextSession: '2024-01-18', progress: 40 }
   ];
 
+  // Mock progress data for patients
+  const mockProgressData = [
+    {
+      date: '2024-01-08',
+      energy: 6,
+      stress: 7,
+      bodyComfort: 5,
+      overall: 6,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling more relaxed after the session'
+    },
+    {
+      date: '2024-01-09',
+      energy: 7,
+      stress: 6,
+      bodyComfort: 6,
+      overall: 7,
+      treatment: 'Shirodhara',
+      improvements: 'Better sleep quality'
+    },
+    {
+      date: '2024-01-10',
+      energy: 8,
+      stress: 5,
+      bodyComfort: 7,
+      overall: 8,
+      treatment: 'Herbal Steam Bath'
+    },
+    {
+      date: '2024-01-11',
+      energy: 8,
+      stress: 4,
+      bodyComfort: 8,
+      overall: 8,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Significant reduction in back pain'
+    },
+    {
+      date: '2024-01-12',
+      energy: 9,
+      stress: 3,
+      bodyComfort: 9,
+      overall: 9,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling very energetic and positive'
+    }
+  ];
   const todaySchedule = [
     { time: '09:00 AM', patient: 'Meera Gupta', treatment: 'Abhyanga', room: 'Room 1' },
     { time: '10:30 AM', patient: 'Suresh Reddy', treatment: 'Shirodhara', room: 'Room 2' },
@@ -169,6 +221,10 @@ const DoctorDashboard: React.FC = () => {
     }
   };
 
+  const handleViewPatientProgress = (patient: any) => {
+    setSelectedPatient(patient);
+    setShowProgressModal(true);
+  };
 
   return (
     // The parent div and the main content container are kept, but the header/navbar is removed.
@@ -247,6 +303,7 @@ const DoctorDashboard: React.FC = () => {
                         <td className="py-3 px-4"><div className="flex items-center space-x-2"><div className="w-16 h-2 bg-gray-200 rounded-full"><div className="h-full bg-sage-600 rounded-full" style={{ width: `${patient.progress}%` }}></div></div><span className="text-sm text-gray-600">{patient.progress}%</span></div></td>
                         <td className="py-3 px-4 text-gray-600">{patient.nextSession}</td>
                         <td className="py-3 px-4"><div className="flex items-center space-x-2"><button className="p-1 text-gray-400 hover:text-sage-600"><Eye className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-sage-600"><Edit className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-gray-600"><MoreVertical className="w-4 h-4" /></button></div></td>
+                        <td className="py-3 px-4"><div className="flex items-center space-x-2"><button onClick={() => handleViewPatientProgress(patient)} className="p-1 text-gray-400 hover:text-sage-600"><Eye className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-sage-600"><Edit className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-gray-600"><MoreVertical className="w-4 h-4" /></button></div></td>
                       </tr>
                     ))}
                   </tbody>
@@ -304,6 +361,14 @@ const DoctorDashboard: React.FC = () => {
         )}
         
       </div>
+
+      {/* Patient Progress Modal */}
+      <PatientProgressModal
+        isOpen={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
+        patient={selectedPatient || { id: '', name: '', condition: '', progress: 0 }}
+        progressData={mockProgressData}
+      />
     </div>
   );
 };

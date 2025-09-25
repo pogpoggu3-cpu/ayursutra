@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, Heart, TrendingUp, Clock, MessageCircle, Award, Activity, CheckCircle, 
-  AlertCircle, Play, Pause, Send, Loader2, Mic, Volume2 
+  AlertCircle, Play, Pause, Send, Loader2, Mic, Volume2, Star
 } from 'lucide-react';
+import FeedbackModal from '../../components/Patient/FeedbackModal';
+import ProgressVisualization from '../../components/Patient/ProgressVisualization';
+import DietRecommendation from '../../components/Patient/DietRecommendation';
 
 // Define a type for chat messages for better organization
 type ChatMessage = {
@@ -23,6 +26,58 @@ if (SpeechRecognition) {
 const PatientDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
+  // --- Feedback Modal State ---
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [completedSession, setCompletedSession] = useState<any>(null);
+  
+  // --- Progress Data State ---
+  const [progressData, setProgressData] = useState([
+    {
+      date: '2024-01-08',
+      energy: 6,
+      stress: 7,
+      bodyComfort: 5,
+      overall: 6,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling more relaxed after the session'
+    },
+    {
+      date: '2024-01-09',
+      energy: 7,
+      stress: 6,
+      bodyComfort: 6,
+      overall: 7,
+      treatment: 'Shirodhara',
+      improvements: 'Better sleep quality'
+    },
+    {
+      date: '2024-01-10',
+      energy: 8,
+      stress: 5,
+      bodyComfort: 7,
+      overall: 8,
+      treatment: 'Herbal Steam Bath'
+    },
+    {
+      date: '2024-01-11',
+      energy: 8,
+      stress: 4,
+      bodyComfort: 8,
+      overall: 8,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Significant reduction in back pain'
+    },
+    {
+      date: '2024-01-12',
+      energy: 9,
+      stress: 3,
+      bodyComfort: 9,
+      overall: 9,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling very energetic and positive'
+    }
+  ]);
+
   // --- AI Assistant State ---
   const [userInput, setUserInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -178,6 +233,28 @@ const PatientDashboard: React.FC = () => {
     }
   };
 
+  // --- Feedback Handlers ---
+  const handleSessionComplete = (sessionData: any) => {
+    setCompletedSession(sessionData);
+    setShowFeedbackModal(true);
+  };
+
+  const handleFeedbackSubmit = (feedback: any) => {
+    const newProgressEntry = {
+      date: new Date().toISOString().split('T')[0],
+      energy: feedback.energyLevel,
+      stress: feedback.stressLevel,
+      bodyComfort: feedback.symptomSpecific,
+      overall: feedback.overallFeeling,
+      treatment: completedSession?.treatment || 'Session',
+      improvements: feedback.improvements,
+      sideEffects: feedback.sideEffects
+    };
+    
+    setProgressData(prev => [...prev, newProgressEntry]);
+    setShowFeedbackModal(false);
+    setCompletedSession(null);
+  };
 
   // Mock Data (as provided)
   const treatmentStats = [
@@ -241,7 +318,8 @@ const PatientDashboard: React.FC = () => {
             { key: 'overview', label: 'Overview' },
             { key: 'sessions', label: 'Sessions' },
             { key: 'progress', label: 'Progress' },
-            { key: 'guidance', label: 'Daily Guidance' }
+            { key: 'diet', label: 'Diet Plan' },
+            { key: 'guidance', label: 'AI Assistant' }
           ].map((tab) => (
             <button
               key={tab.key}
@@ -308,7 +386,14 @@ const PatientDashboard: React.FC = () => {
                         <p className="text-xs text-sage-600 mt-1">{session.room}</p>
                       </div>
                       <button className="text-sage-600 hover:text-sage-700">
-                        <CheckCircle className="w-5 h-5" />
+                        <CheckCircle 
+                          className="w-5 h-5 cursor-pointer" 
+                          onClick={() => handleSessionComplete({
+                            treatment: session.treatment,
+                            time: session.time,
+                            date: session.date
+                          })}
+                        />
                       </button>
                     </div>
                   ))}
@@ -406,104 +491,26 @@ const PatientDashboard: React.FC = () => {
 
         {/* Progress Tab */}
         {activeTab === 'progress' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold text-charcoal mb-6">Your Progress Journey</h2>
-              
-              {/* Progress Chart */}
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-charcoal mb-4">Weekly Wellness Trends</h3>
-                <div className="overflow-x-auto">
-                  <div className="min-w-full bg-gray-50 rounded-lg p-4">
-                    {progressData.map((week, index) => (
-                      <div key={index} className="mb-6 last:mb-0">
-                        <h4 className="font-medium text-charcoal mb-3">{week.week}</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Stress Level</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-red-500 rounded"
-                                  style={{ width: `${(10 - week.stress) * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.stress}/10</span>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Energy Level</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-green-500 rounded"
-                                  style={{ width: `${week.energy * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.energy}/10</span>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Sleep Quality</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-blue-500 rounded"
-                                  style={{ width: `${week.sleep * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.sleep}/10</span>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Digestion</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-yellow-500 rounded"
-                                  style={{ width: `${week.digestion * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.digestion}/10</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Achievements */}
-              <div>
-                <h3 className="text-lg font-medium text-charcoal mb-4">Recent Achievements</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-sage-50 to-beige-50 rounded-lg p-4 border-l-4 border-sage-600">
-                    <Award className="w-8 h-8 text-sage-600 mb-2" />
-                    <h4 className="font-medium text-charcoal">Consistency Champion</h4>
-                    <p className="text-sm text-gray-600">Completed 7 consecutive sessions</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border-l-4 border-green-600">
-                    <TrendingUp className="w-8 h-8 text-green-600 mb-2" />
-                    <h4 className="font-medium text-charcoal">Progress Leader</h4>
-                    <p className="text-sm text-gray-600">50% improvement in wellness score</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border-l-4 border-blue-600">
-                    <Heart className="w-8 h-8 text-blue-600 mb-2" />
-                    <h4 className="font-medium text-charcoal">Mindful Healer</h4>
-                    <p className="text-sm text-gray-600">20 days of daily meditation</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ProgressVisualization data={progressData} />
         )}
 
-        {/* Guidance Tab - Now Fully Integrated */}
+        {/* Diet Plan Tab */}
+        {activeTab === 'diet' && (
+          <DietRecommendation 
+            patientDosha="Vata-Pitta"
+            upcomingTreatment="Shirodhara"
+            recentFeedback={{
+              digestion: progressData[progressData.length - 1]?.bodyComfort || 7,
+              energy: progressData[progressData.length - 1]?.energy || 8
+            }}
+          />
+        )}
+
+        {/* AI Assistant Tab - Now Fully Integrated */}
         {activeTab === 'guidance' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold text-charcoal mb-6">Daily Ayurvedic Guidance</h2>
+              <h2 className="text-2xl font-semibold text-charcoal mb-6">AI Assistant & Daily Guidance</h2>
               
               {/* Pre-therapy Instructions */}
               <div className="mb-8">
@@ -628,6 +635,14 @@ const PatientDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        sessionData={completedSession || { treatment: '', time: '', date: '' }}
+        onSubmit={handleFeedbackSubmit}
+      />
     </div>
   );
 };
