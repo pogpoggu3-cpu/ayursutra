@@ -1,21 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { 
-  Users, 
-  Calendar, 
-  Brain, 
-  TrendingUp, 
-  Camera,
-  Loader2,
-  FileUp,
-  X,
-  Plus,
-  Search,
-  Filter,
-  MoreVertical,
-  Eye,
-  Edit,
-  Clock
-} from 'lucide-react';
+import { Users, Calendar, Brain, TrendingUp, Camera, Loader2, FileUp, X, Plus, Search, Filter, MoreVertical, Eye, CreditCard as Edit, Clock } from 'lucide-react';
 import PatientProgressModal from '../../components/Doctor/PatientProgressModal';
 
 // --- Type Definitions for Structured Data ---
