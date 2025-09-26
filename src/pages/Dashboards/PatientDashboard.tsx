@@ -201,6 +201,13 @@ const PatientDashboard: React.FC = () => {
     { time: '08:00 PM', activity: 'Evening Walk', duration: '15 mins', completed: false }
   ];
 
+  const progressData = [
+    { week: 'Week 1', stress: 8, energy: 4, sleep: 5, digestion: 6 },
+    { week: 'Week 2', stress: 7, energy: 5, sleep: 6, digestion: 7 },
+    { week: 'Week 3', stress: 6, energy: 6, sleep: 7, digestion: 7 },
+    { week: 'Week 4', stress: 4, energy: 8, sleep: 8, digestion: 8 }
+  ];
+
 
   return (
     <div className="min-h-screen bg-mint-50 font-sans">
