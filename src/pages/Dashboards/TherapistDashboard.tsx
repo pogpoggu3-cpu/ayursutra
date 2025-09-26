@@ -11,11 +11,17 @@ import {
   FileText,
   Star,
   Timer,
-  Activity
+  Activity,
+  Eye
 } from 'lucide-react';
+import PatientProgressModal from '../../components/Doctor/PatientProgressModal';
 
 const TherapistDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // --- Patient Progress Modal State ---
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [showProgressModal, setShowProgressModal] = useState(false);
 
   const stats = [
     { title: 'Today\'s Sessions', value: '6', change: 'On schedule', icon: <Calendar className="w-6 h-6" /> },
@@ -93,6 +99,65 @@ const TherapistDashboard: React.FC = () => {
       date: '2024-01-10'
     }
   ];
+
+  // Mock progress data for patients
+  const mockProgressData = [
+    {
+      date: '2024-01-08',
+      energy: 6,
+      stress: 7,
+      bodyComfort: 5,
+      overall: 6,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling more relaxed after the session'
+    },
+    {
+      date: '2024-01-09',
+      energy: 7,
+      stress: 6,
+      bodyComfort: 6,
+      overall: 7,
+      treatment: 'Shirodhara',
+      improvements: 'Better sleep quality'
+    },
+    {
+      date: '2024-01-10',
+      energy: 8,
+      stress: 5,
+      bodyComfort: 7,
+      overall: 8,
+      treatment: 'Herbal Steam Bath'
+    },
+    {
+      date: '2024-01-11',
+      energy: 8,
+      stress: 4,
+      bodyComfort: 8,
+      overall: 8,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Significant reduction in back pain'
+    },
+    {
+      date: '2024-01-12',
+      energy: 9,
+      stress: 3,
+      bodyComfort: 9,
+      overall: 9,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling very energetic and positive'
+    }
+  ];
+
+  const handleViewPatientProgress = (patientName: string) => {
+    const mockPatient = {
+      id: '1',
+      name: patientName,
+      condition: 'Stress Management',
+      progress: 78
+    };
+    setSelectedPatient(mockPatient);
+    setShowProgressModal(true);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -291,7 +356,10 @@ const TherapistDashboard: React.FC = () => {
                           <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                             Start Session
                           </button>
-                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
+                          <button 
+                            onClick={() => handleViewPatientProgress(session.patient)}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+                          >
                             View Patient Details
                           </button>
                         </>
@@ -307,9 +375,18 @@ const TherapistDashboard: React.FC = () => {
                         </>
                       )}
                       {session.status === 'completed' && (
-                        <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
+                        <>
+                          <button 
+                            onClick={() => handleViewPatientProgress(session.patient)}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>View Progress</span>
+                          </button>
+                          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
                           View Session Report
                         </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -464,6 +541,14 @@ const TherapistDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Patient Progress Modal */}
+      <PatientProgressModal
+        isOpen={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
+        patient={selectedPatient || { id: '', name: '', condition: '', progress: 0 }}
+        progressData={mockProgressData}
+      />
     </div>
   );
 };

@@ -287,7 +287,6 @@ const DoctorDashboard: React.FC = () => {
                         <td className="py-3 px-4"><div className="flex items-center space-x-2"><div className="w-16 h-2 bg-gray-200 rounded-full"><div className="h-full bg-sage-600 rounded-full" style={{ width: `${patient.progress}%` }}></div></div><span className="text-sm text-gray-600">{patient.progress}%</span></div></td>
                         <td className="py-3 px-4 text-gray-600">{patient.nextSession}</td>
                         <td className="py-3 px-4"><div className="flex items-center space-x-2"><button className="p-1 text-gray-400 hover:text-sage-600"><Eye className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-sage-600"><Edit className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-gray-600"><MoreVertical className="w-4 h-4" /></button></div></td>
-                        <td className="py-3 px-4"><div className="flex items-center space-x-2"><button onClick={() => handleViewPatientProgress(patient)} className="p-1 text-gray-400 hover:text-sage-600"><Eye className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-sage-600"><Edit className="w-4 h-4" /></button><button className="p-1 text-gray-400 hover:text-gray-600"><MoreVertical className="w-4 h-4" /></button></div></td>
                       </tr>
                     ))}
                   </tbody>

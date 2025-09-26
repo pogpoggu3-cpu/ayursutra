@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, Heart, TrendingUp, Clock, MessageCircle, Award, Activity, CheckCircle, 
-  AlertCircle, Play, Pause, Send, Loader2, Mic, Volume2 
+  AlertCircle, Play, Pause, Send, Loader2, Mic, Volume2, Watch, Smartphone, Wifi, Battery
 } from 'lucide-react';
+import FeedbackModal from '../../components/Patient/FeedbackModal';
+import ProgressVisualization from '../../components/Patient/ProgressVisualization';
+import DietRecommendation from '../../components/Patient/DietRecommendation';
 
 // Define a type for chat messages for better organization
 type ChatMessage = {
@@ -23,6 +26,19 @@ if (SpeechRecognition) {
 const PatientDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
+  // --- Feedback Modal State ---
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [completedSession, setCompletedSession] = useState<any>(null);
+  
+  // --- Smartwatch Integration State ---
+  const [smartwatchConnected, setSmartwatchConnected] = useState(false);
+  const [smartwatchData, setSmartwatchData] = useState({
+    heartRate: 72,
+    steps: 8420,
+    sleep: 7.5,
+    stress: 3
+  });
+
   // --- AI Assistant State ---
   const [userInput, setUserInput] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -202,11 +218,76 @@ const PatientDashboard: React.FC = () => {
   ];
 
   const progressData = [
-    { week: 'Week 1', stress: 8, energy: 4, sleep: 5, digestion: 6 },
-    { week: 'Week 2', stress: 7, energy: 5, sleep: 6, digestion: 7 },
-    { week: 'Week 3', stress: 6, energy: 6, sleep: 7, digestion: 7 },
-    { week: 'Week 4', stress: 4, energy: 8, sleep: 8, digestion: 8 }
+    {
+      date: '2024-01-08',
+      energy: 6,
+      stress: 7,
+      bodyComfort: 5,
+      overall: 6,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling more relaxed after the session'
+    },
+    {
+      date: '2024-01-09',
+      energy: 7,
+      stress: 6,
+      bodyComfort: 6,
+      overall: 7,
+      treatment: 'Shirodhara',
+      improvements: 'Better sleep quality'
+    },
+    {
+      date: '2024-01-10',
+      energy: 8,
+      stress: 5,
+      bodyComfort: 7,
+      overall: 8,
+      treatment: 'Herbal Steam Bath'
+    },
+    {
+      date: '2024-01-11',
+      energy: 8,
+      stress: 4,
+      bodyComfort: 8,
+      overall: 8,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Significant reduction in back pain'
+    },
+    {
+      date: '2024-01-12',
+      energy: 9,
+      stress: 3,
+      bodyComfort: 9,
+      overall: 9,
+      treatment: 'Abhyanga Massage',
+      improvements: 'Feeling very energetic and positive'
+    }
   ];
+
+  // --- Feedback Handlers ---
+  const handleCompleteSession = (session: any) => {
+    setCompletedSession(session);
+    setShowFeedbackModal(true);
+  };
+
+  const handleFeedbackSubmit = (feedbackData: any) => {
+    console.log('Feedback submitted:', feedbackData);
+    // Here you would typically send the feedback to your backend
+    // and update the progress data
+  };
+
+  // --- Smartwatch Handlers ---
+  const handleConnectSmartwatch = () => {
+    setSmartwatchConnected(true);
+    // Simulate receiving data from smartwatch
+    setInterval(() => {
+      setSmartwatchData(prev => ({
+        ...prev,
+        heartRate: 70 + Math.floor(Math.random() * 10),
+        steps: prev.steps + Math.floor(Math.random() * 50)
+      }));
+    }, 30000);
+  };
 
 
   return (
@@ -241,12 +322,14 @@ const PatientDashboard: React.FC = () => {
             { key: 'overview', label: 'Overview' },
             { key: 'sessions', label: 'Sessions' },
             { key: 'progress', label: 'Progress' },
-            { key: 'guidance', label: 'Daily Guidance' }
+            { key: 'guidance', label: 'Daily Guidance' },
+            { key: 'diet', label: 'Diet Plan' },
+            { key: 'smartwatch', label: 'Smartwatch' }
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-3 px-4 rounded-md font-medium transition-all text-sm sm:text-base ${
+              className={`flex-1 py-3 px-2 rounded-md font-medium transition-all text-xs sm:text-sm ${
                 activeTab === tab.key
                   ? 'bg-sage-600 text-white shadow-md'
                   : 'text-gray-600 hover:text-sage-600 hover:bg-sage-50'
@@ -307,7 +390,10 @@ const PatientDashboard: React.FC = () => {
                         <p className="text-sm text-gray-600">{session.time} • {session.therapist}</p>
                         <p className="text-xs text-sage-600 mt-1">{session.room}</p>
                       </div>
-                      <button className="text-sage-600 hover:text-sage-700">
+                      <button 
+                        onClick={() => handleCompleteSession(session)}
+                        className="text-sage-600 hover:text-sage-700"
+                      >
                         <CheckCircle className="w-5 h-5" />
                       </button>
                     </div>
@@ -406,97 +492,7 @@ const PatientDashboard: React.FC = () => {
 
         {/* Progress Tab */}
         {activeTab === 'progress' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-2xl font-semibold text-charcoal mb-6">Your Progress Journey</h2>
-              
-              {/* Progress Chart */}
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-charcoal mb-4">Weekly Wellness Trends</h3>
-                <div className="overflow-x-auto">
-                  <div className="min-w-full bg-gray-50 rounded-lg p-4">
-                    {progressData.map((week, index) => (
-                      <div key={index} className="mb-6 last:mb-0">
-                        <h4 className="font-medium text-charcoal mb-3">{week.week}</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Stress Level</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-red-500 rounded"
-                                  style={{ width: `${(10 - week.stress) * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.stress}/10</span>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Energy Level</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-green-500 rounded"
-                                  style={{ width: `${week.energy * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.energy}/10</span>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Sleep Quality</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-blue-500 rounded"
-                                  style={{ width: `${week.sleep * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.sleep}/10</span>
-                            </div>
-                          </div>
-                          <div className="bg-white rounded p-3">
-                            <div className="text-sm text-gray-600 mb-1">Digestion</div>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex-1 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="h-full bg-yellow-500 rounded"
-                                  style={{ width: `${week.digestion * 10}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium">{week.digestion}/10</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Achievements */}
-              <div>
-                <h3 className="text-lg font-medium text-charcoal mb-4">Recent Achievements</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-sage-50 to-beige-50 rounded-lg p-4 border-l-4 border-sage-600">
-                    <Award className="w-8 h-8 text-sage-600 mb-2" />
-                    <h4 className="font-medium text-charcoal">Consistency Champion</h4>
-                    <p className="text-sm text-gray-600">Completed 7 consecutive sessions</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border-l-4 border-green-600">
-                    <TrendingUp className="w-8 h-8 text-green-600 mb-2" />
-                    <h4 className="font-medium text-charcoal">Progress Leader</h4>
-                    <p className="text-sm text-gray-600">50% improvement in wellness score</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border-l-4 border-blue-600">
-                    <Heart className="w-8 h-8 text-blue-600 mb-2" />
-                    <h4 className="font-medium text-charcoal">Mindful Healer</h4>
-                    <p className="text-sm text-gray-600">20 days of daily meditation</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ProgressVisualization data={progressData} />
         )}
 
         {/* Guidance Tab - Now Fully Integrated */}
@@ -627,7 +623,161 @@ const PatientDashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Diet Plan Tab */}
+        {activeTab === 'diet' && (
+          <DietRecommendation 
+            patientDosha="Vata-Pitta"
+            upcomingTreatment="Shirodhara"
+            recentFeedback={{
+              digestion: 7,
+              energy: 8
+            }}
+          />
+        )}
+
+        {/* Smartwatch Integration Tab */}
+        {activeTab === 'smartwatch' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-2xl font-semibold text-charcoal mb-6">Smartwatch Integration</h2>
+              
+              {!smartwatchConnected ? (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Watch className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-charcoal mb-4">Connect Your Smartwatch</h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    Sync your smartwatch to automatically track vital signs, sleep patterns, and activity levels 
+                    to enhance your Ayurvedic treatment insights.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="p-4 bg-sage-50 rounded-lg">
+                      <Heart className="w-8 h-8 text-sage-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-charcoal">Heart Rate</h4>
+                      <p className="text-sm text-gray-600">Monitor stress and recovery</p>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <Activity className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-charcoal">Activity Tracking</h4>
+                      <p className="text-sm text-gray-600">Steps, movement, and exercise</p>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <Clock className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-charcoal">Sleep Analysis</h4>
+                      <p className="text-sm text-gray-600">Quality and duration tracking</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleConnectSmartwatch}
+                    className="bg-sage-600 text-white px-8 py-3 rounded-lg hover:bg-sage-700 transition-colors flex items-center space-x-2 mx-auto"
+                  >
+                    <Wifi className="w-5 h-5" />
+                    <span>Connect Smartwatch</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Connection Status */}
+                  <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium text-green-800">Apple Watch Connected</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <Battery className="w-4 h-4" />
+                      <span className="text-sm">85%</span>
+                    </div>
+                  </div>
+
+                  {/* Real-time Metrics */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <Heart className="w-8 h-8 text-red-500" />
+                        <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">Live</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-charcoal mb-1">{smartwatchData.heartRate}</h3>
+                      <p className="text-red-600 text-sm">BPM</p>
+                      <p className="text-xs text-gray-600 mt-2">Resting: 68 BPM</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <Activity className="w-8 h-8 text-blue-500" />
+                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Today</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-charcoal mb-1">{smartwatchData.steps.toLocaleString()}</h3>
+                      <p className="text-blue-600 text-sm">Steps</p>
+                      <p className="text-xs text-gray-600 mt-2">Goal: 10,000</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <Clock className="w-8 h-8 text-purple-500" />
+                        <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Last Night</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-charcoal mb-1">{smartwatchData.sleep}h</h3>
+                      <p className="text-purple-600 text-sm">Sleep</p>
+                      <p className="text-xs text-gray-600 mt-2">Quality: Good</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <TrendingUp className="w-8 h-8 text-yellow-500" />
+                        <span className="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Current</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-charcoal mb-1">{smartwatchData.stress}/10</h3>
+                      <p className="text-yellow-600 text-sm">Stress Level</p>
+                      <p className="text-xs text-gray-600 mt-2">Low stress</p>
+                    </div>
+                  </div>
+
+                  {/* AI Insights */}
+                  <div className="bg-gradient-to-br from-sage-50 to-beige-50 rounded-xl p-6 border border-sage-200">
+                    <h3 className="text-lg font-semibold text-charcoal mb-4 flex items-center">
+                      <Smartphone className="w-5 h-5 mr-2 text-sage-600" />
+                      AI Health Insights
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="text-sm text-charcoal font-medium">Excellent Recovery Pattern</p>
+                          <p className="text-xs text-gray-600">Your heart rate variability shows great improvement since starting Abhyanga therapy.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="text-sm text-charcoal font-medium">Sleep Quality Improving</p>
+                          <p className="text-xs text-gray-600">Deep sleep duration increased by 23% since beginning Shirodhara sessions.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                        <div>
+                          <p className="text-sm text-charcoal font-medium">Optimal Treatment Timing</p>
+                          <p className="text-xs text-gray-600">Your stress levels are lowest between 10-11 AM - perfect for today's therapy.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        sessionData={completedSession || { treatment: '', time: '', date: '' }}
+        onSubmit={handleFeedbackSubmit}
+      />
     </div>
   );
 };
